@@ -54,6 +54,23 @@ frappe.views.Workspace = class Workspace {
 		this.has_create_access = frappe.boot.workspaces.has_create_access;
 		this.setup();
 		this.show();
+		const items = this.get_flat_items();
+
+        this.$page.html(`
+            <div class="workspace-flat-list">
+                ${items.map(item => `
+                    <div class="workspace-item"
+                        onclick="frappe.set_route('${item.route || item.link_to}')"
+                        style="
+                            padding: 10px;
+                            border-bottom: 1px solid #eee;
+                            cursor: pointer;
+                        ">
+                        <span>${item.label || item.title}</span>
+                    </div>
+                `).join('')}
+            </div>
+        `);
 		this.register_awesomebar_shortcut();
 	}
 	setup() {
@@ -287,6 +304,10 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	prepare_editorjs() {
+		if (this.is_flat_view) {
+        this.render_flat_list();
+        return;
+    	}
 		if (this.editor) {
 			this.editor.isReady.then(() => {
 				this.editor.configuration.tools.chart.config.page_data = this.page_data;
@@ -296,7 +317,6 @@ frappe.views.Workspace = class Workspace {
 				this.editor.configuration.tools.quick_list.config.page_data = this.page_data;
 				this.editor.configuration.tools.number_card.config.page_data = this.page_data;
 				this.editor.configuration.tools.custom_block.config.page_data = this.page_data;
-				this.editor.render({ blocks: this.content || [] });
 			});
 		} else {
 			this.initialize_editorjs(this.content);
